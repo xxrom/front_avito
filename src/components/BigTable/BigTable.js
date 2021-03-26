@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import clsx from "clsx";
 import { withStyles } from "@material-ui/core/styles";
 import TableCell from "@material-ui/core/TableCell";
@@ -35,7 +35,7 @@ const styles = (theme) => ({
   },
 });
 
-const FastTable = (props = {}) => {
+const FastTable = memo((props = {}) => {
   const {
     classes,
     columns,
@@ -130,11 +130,13 @@ const FastTable = (props = {}) => {
       )}
     </AutoSizer>
   );
-};
+});
+
+FastTable.displayName = "FastTable";
 
 export const BigTable = withStyles(styles)(FastTable);
 
-export const Example = () => {
+export const Example = memo(() => {
   const sample = [
     ["Frozen yoghurt", 159, 6.0, 24, 4.0],
     ["Ice cream sandwich", 237, 9.0, 37, 4.3],
@@ -193,4 +195,6 @@ export const Example = () => {
       />
     </Paper>
   );
-};
+});
+
+Example.displayName = "Example";
