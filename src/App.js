@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { styled } from "linaria/react";
 import { hot } from "react-hot-loader/root";
 
+import { Example } from "./components/BigTable/BigTable";
+
 const App = () => {
   const [count, setCount] = useState(0);
 
@@ -10,6 +12,7 @@ const App = () => {
       <H1>Hello World!</H1>
       <div>{count}</div>
       <button onClick={() => setCount(count + 1)}>add</button>
+      <Example />
     </div>
   );
 };
