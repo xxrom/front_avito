@@ -24,6 +24,7 @@ module.exports = {
         legacy: true,
       },
     ],
+    "@babel/plugin-transform-runtime",
     "@babel/plugin-proposal-function-sent",
     "@babel/plugin-proposal-export-namespace-from",
     "@babel/plugin-proposal-numeric-separator",
