@@ -1,9 +1,9 @@
-import React, {useMemo, useState} from 'react';
-import {matchSorter} from 'match-sorter';
+import React, {useMemo, useState} from "react";
+import {matchSorter} from "match-sorter";
 import regeneratorRuntime from "regenerator-runtime";
-import {
-  useAsyncDebounce,
-} from "react-table";
+import {useAsyncDebounce} from "react-table";
+
+export const MAX_ITEMS = 100;
 
 // Define a default UI for filtering
 export function GlobalFilter({
@@ -15,7 +15,7 @@ export function GlobalFilter({
   const [value, setValue] = useState(globalFilter);
 
   const onChange = useAsyncDebounce((value) => {
-    setGlobalFilter(value || "undefined");
+    setGlobalFilter(value || "");
   }, 200);
 
   return (
@@ -47,7 +47,7 @@ export function DefaultColumnFilter({
     <input
       value={filterValue || ""}
       onChange={(e) => {
-        setFilter(e.target.value || "undefined"); // Set undefined to remove the filter entirely
+        setFilter(e.target.value || ""); // Set undefined to remove the filter entirely
       }}
       placeholder={`Search ${count} records...`}
     />
@@ -75,7 +75,7 @@ export function SelectColumnFilter({
     <select
       value={filterValue}
       onChange={(e) => {
-        setFilter(e.target.value || "undefined");
+        setFilter(e.target.value || "");
       }}
     >
       <option value="">All</option>
@@ -116,10 +116,10 @@ export function SliderColumnFilter({
         max={max}
         value={filterValue || min}
         onChange={(e) => {
-          setFilter(parseInt(e.target.value, 10));
+          setFilter(parseInt(e.target.value, MAX_ITEMS));
         }}
       />
-      <button onClick={() => setFilter("undefined")}>Off</button>
+      <button onClick={() => setFilter("")}>Off</button>
     </>
   );
 }
@@ -153,7 +153,7 @@ export function NumberRangeColumnFilter({
         onChange={(e) => {
           const val = e.target.value;
           setFilter((old = []) => [
-            val ? parseInt(val, 10) : "undefined",
+            val ? parseInt(val, 10) : 0,
             old[1],
           ]);
         }}
@@ -171,7 +171,7 @@ export function NumberRangeColumnFilter({
           const val = e.target.value;
           setFilter((old = []) => [
             old[0],
-            val ? parseInt(val, 10) : "undefined",
+            val ? parseInt(val, 10) : 0,
           ]);
         }}
         placeholder={`Max (${max})`}
@@ -185,23 +185,21 @@ export function NumberRangeColumnFilter({
 }
 
 export function fuzzyTextFilterFn(rows, id, filterValue) {
-  // Let the table remove the filter if the string is empty
-  this.autoRemove = (val) => !val;
-
   return matchSorter(rows, filterValue, {keys: [(row) => row.values[id]]});
 }
+// Let the table remove the filter if the string is empty
+fuzzyTextFilterFn.autoRemove = (val) => !val;
 
 // Define a custom filter filter function!
 export function filterGreaterThan(rows, id, filterValue) {
-  // This is an autoRemove method on the filter function that
-  // when given the new filter value and returns true, the filter
-  // will be automatically removed. Normally this is just an undefined
-  // check, but here, we want to remove the filter if it's not a number
-  this.filterGreaterThan.autoRemove = (val) => typeof val !== "number";
-
   return rows.filter((row) => {
     const rowValue = row.values[id];
 
     return rowValue >= filterValue;
   });
 }
+// This is an autoRemove method on the filter function that
+// when given the new filter value and returns true, the filter
+// will be automatically removed. Normally this is just an undefined
+// check, but here, we want to remove the filter if it's not a number
+filterGreaterThan.autoRemove = (val) => typeof val !== "number";

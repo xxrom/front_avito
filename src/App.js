@@ -4,68 +4,90 @@ import {hot} from "react-hot-loader/root";
 
 import {Example} from "./components/BigTable/BigTable";
 import {FilterTable, FilterTableWrapper} from "./components/FilterTable";
-import {SliderColumnFilter, GlobalFilter, fuzzyTextFilterFn, SelectColumnFilter, filterGreaterThan, DefaultColumnFilter, NumberRangeColumnFilter} from './components/FilterTable/filters';
+import {
+  SliderColumnFilter,
+  GlobalFilter,
+  fuzzyTextFilterFn,
+  SelectColumnFilter,
+  filterGreaterThan,
+  DefaultColumnFilter,
+  NumberRangeColumnFilter,
+} from "./components/FilterTable/filters";
 
 const App = () => {
   const [count, setCount] = useState(0);
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:3333/cards').then((result) => {
-      console.log('result', result);
-    })
+    fetch("http://localhost:3010/card")
+      .then((res) => res.json())
+      .then((result) => {
+        console.log("result", result);
+        setData(result.data || []);
+      });
+  }, []);
 
-  }, [])
+  /*
+    id: 1325
+    card_id: 2124488356
+    price: 25000
 
+    title: "GTX 1060 6 GB gigabyte"
+
+    geo: "Москва"
+
+    link: "/moskva/tovary_dlya_kompyutera/gtx_1060_6_gb_gigabyte_2124488356?slocation=107620"
+
+    
+    - timeago: "1 минуту назад"
+    - createdtime: "1616680167682"
+   */
   const columns = React.useMemo(
     () => [
       {
-        Header: 'Name',
+        Header: "ID",
         columns: [
           {
-            Header: 'First Name',
-            accessor: 'firstName',
+            Header: "ID",
+            accessor: "id",
           },
           {
-            Header: 'Last Name',
-            accessor: 'lastName',
+            Header: "CardID",
+            accessor: "card_id",
             // Use our custom `fuzzyText` filter on this column
-            filter: 'fuzzyText',
+            filter: "fuzzyText",
           },
         ],
       },
       {
-        Header: 'Info',
+        Header: "Info",
         columns: [
           {
-            Header: 'Age',
-            accessor: 'age',
-            Filter: SliderColumnFilter,
-            filter: 'equals',
-          },
-          {
-            Header: 'Visits',
-            accessor: 'visits',
+            Header: "Price",
+            accessor: "price",
             Filter: NumberRangeColumnFilter,
-            filter: 'between',
+            filter: "between",
           },
           {
-            Header: 'Status',
-            accessor: 'status',
-            Filter: SelectColumnFilter,
-            filter: 'includes',
+            Header: "Title",
+            accessor: "title",
+            filter: "fuzzyText",
           },
           {
-            Header: 'Profile Progress',
-            accessor: 'progress',
-            Filter: SliderColumnFilter,
-            filter: filterGreaterThan,
+            Header: "Geo",
+            accessor: "geo",
+            filter: "fuzzyText",
+          },
+          {
+            Header: "Link",
+            accessor: "link",
+            filter: "fuzzyText",
           },
         ],
       },
     ],
     []
-  )
+  );
 
   return (
     <div>

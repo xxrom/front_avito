@@ -5,7 +5,7 @@ import {
   useFilters,
   useGlobalFilter,
 } from "react-table";
-import {SliderColumnFilter, NumberRangeColumnFilter, SelectColumnFilter, filterGreaterThan, GlobalFilter, fuzzyTextFilterFn, DefaultColumnFilter} from './filters';
+import {SliderColumnFilter, NumberRangeColumnFilter, SelectColumnFilter, filterGreaterThan, GlobalFilter, fuzzyTextFilterFn, DefaultColumnFilter, MAX_ITEMS} from './filters';
 
 import makeData from "./makeData";
 
@@ -96,7 +96,7 @@ function Table({columns, data}) {
 
   // We don't want to render all of the rows for this example, so cap
   // it for this use case
-  const firstPageRows = rows.slice(0, 10);
+  const firstPageRows = rows.slice(0, MAX_ITEMS);
 
   return (
     <>
