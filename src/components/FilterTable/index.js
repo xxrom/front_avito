@@ -1,2 +1,2 @@
-export {FilterTable, FilterTableWrapper} from './FilterTable';
+export {FilterTableWrapper} from './FilterTable';
 

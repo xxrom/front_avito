@@ -1,29 +1,61 @@
-import React, {useState, useEffect} from "react";
-import {styled} from "linaria/react";
+import React, {useMemo, useState, useEffect} from "react";
 import {hot} from "react-hot-loader/root";
 
-import {Example} from "./components/BigTable/BigTable";
-import {FilterTable, FilterTableWrapper} from "./components/FilterTable";
+import {FilterTableWrapper} from "./components/FilterTable";
 import {
-  SliderColumnFilter,
-  GlobalFilter,
-  fuzzyTextFilterFn,
-  SelectColumnFilter,
-  filterGreaterThan,
-  DefaultColumnFilter,
+  //SliderColumnFilter,
+  //GlobalFilter,
+  //fuzzyTextFilterFn,
+  //SelectColumnFilter,
+  //filterGreaterThan,
+  //DefaultColumnFilter,
   NumberRangeColumnFilter,
 } from "./components/FilterTable/filters";
+import {uniqData} from "./uniqData";
+
+const addTextBefore = ({data, key, addBefore}) => {
+  const newData = data.map((item) => ({
+    ...item,
+    [key]: `${addBefore}${item[key]}`,
+  }));
+
+  return newData;
+};
+const formLinks = (data) => {
+  // Form correct link
+  const expandedData = addTextBefore({
+    data,
+    key: "link",
+    addBefore: "http://avito.ru",
+  });
+
+  return expandedData;
+};
 
 const App = () => {
-  const [count, setCount] = useState(0);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState(uniqData); // []
 
   useEffect(() => {
-    fetch("http://localhost:3010/card")
+    fetch("http://192.168.1.61:3010/card")
       .then((res) => res.json())
       .then((result) => {
-        console.log("result", result);
-        setData(result.data || []);
+        const seen = {};
+        const rawData = result.data;
+        const uniqData = rawData.reduce((accumulator, item) => {
+          const {card_id} = item;
+
+          if (!seen[card_id]) {
+            seen[card_id] = true;
+            accumulator.push(item);
+          }
+
+          return accumulator;
+        }, []);
+
+        const unique = formLinks(uniqData);
+        console.warn(`unique size ${unique.length}`);
+
+        setData(unique || []);
       });
   }, []);
 
@@ -42,67 +74,69 @@ const App = () => {
     - timeago: "1 минуту назад"
     - createdtime: "1616680167682"
    */
-  const columns = React.useMemo(
+  const columns = useMemo(
     () => [
       {
         Header: "ID",
-        columns: [
-          {
-            Header: "ID",
-            accessor: "id",
-          },
-          {
-            Header: "CardID",
-            accessor: "card_id",
-            // Use our custom `fuzzyText` filter on this column
-            filter: "fuzzyText",
-          },
-        ],
+        accessor: "id",
       },
       {
-        Header: "Info",
-        columns: [
-          {
-            Header: "Price",
-            accessor: "price",
-            Filter: NumberRangeColumnFilter,
-            filter: "between",
-          },
-          {
-            Header: "Title",
-            accessor: "title",
-            filter: "fuzzyText",
-          },
-          {
-            Header: "Geo",
-            accessor: "geo",
-            filter: "fuzzyText",
-          },
-          {
-            Header: "Link",
-            accessor: "link",
-            filter: "fuzzyText",
-          },
-        ],
+        Header: "Price",
+        accessor: "price",
+        Filter: NumberRangeColumnFilter,
+        filter: "between",
+      },
+      {
+        Header: "Title",
+        accessor: "title",
+        filter: "fuzzyText",
+      },
+      {
+        Header: "Link",
+        accessor: "link",
+        //filter: "fuzzyText",
+        Cell: ({value}) => <a href={value}>LINK</a>,
+      },
+      {
+        Header: "Time",
+        accessor: "createdtime",
+        sortType: "basic",
+        desc: true
+      },
+      {
+        Header: "Geo",
+        accessor: "geo",
+        filter: "fuzzyText",
+      },
+      {
+        Header: "CardID",
+        accessor: "card_id",
+        // Use our custom `fuzzyText` filter on this column
+        filter: "fuzzyText",
       },
     ],
     []
   );
+  const initialState = useMemo(() => ({
+    sortBy: [
+      {
+        id: 'createdtime',
+        desc: true
+      }
+    ],
+    filters: [
+      {
+        id: 'price',
+        value: [15000, 35000]
+      },
+      {
+        id: 'title',
+        value: '1070'
+      }
+    ]
+  }), []);
 
-  return (
-    <div>
-      <H1>Hello World!</H1>
-      <div>{count}</div>
-      <button onClick={() => setCount(count + 1)}>add</button>
-      <Example />
-      <FilterTableWrapper columns={columns} data={data} />
-      <FilterTable />
-    </div>
-  );
+  return <FilterTableWrapper columns={columns} data={data} initialState={initialState} />;
 };
-
-const H1 = styled.h1`
-  color: red;
-`;
 
 export default hot(App);

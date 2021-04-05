@@ -1,13 +1,12 @@
 import React, {useMemo} from "react";
 import {styled} from "linaria/react";
+import {useTable, useFilters, useGlobalFilter, useSortBy} from "react-table";
 import {
-  useTable,
-  useFilters,
-  useGlobalFilter,
-} from "react-table";
-import {SliderColumnFilter, NumberRangeColumnFilter, SelectColumnFilter, filterGreaterThan, GlobalFilter, fuzzyTextFilterFn, DefaultColumnFilter, MAX_ITEMS} from './filters';
-
-import makeData from "./makeData";
+  GlobalFilter,
+  fuzzyTextFilterFn,
+  DefaultColumnFilter,
+  MAX_ITEMS,
+} from "./filters";
 
 const Styles = styled.div`
   padding: 1rem;
@@ -38,12 +37,11 @@ const Styles = styled.div`
   }
 `;
 
-
 // Let the table remove the filter if the string is empty
 //fuzzyTextFilterFn.autoRemove = val => !val
 
 // Our table component
-function Table({columns, data}) {
+function Table({columns, data, initialState}) {
   const filterTypes = useMemo(
     () => ({
       // Add a new fuzzyTextFilterFn filter type.
@@ -89,9 +87,11 @@ function Table({columns, data}) {
       data,
       defaultColumn, // Be sure to pass the defaultColumn option
       filterTypes,
+      initialState,
     },
     useFilters, // useFilters!
-    useGlobalFilter // useGlobalFilter!
+    useGlobalFilter, // useGlobalFilter!
+    useSortBy
   );
 
   // We don't want to render all of the rows for this example, so cap
@@ -99,125 +99,75 @@ function Table({columns, data}) {
   const firstPageRows = rows.slice(0, MAX_ITEMS);
 
   return (
-    <>
-      <table {...getTableProps()}>
-        <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>
+    <table {...getTableProps()}>
+      <thead>
+        <tr>
+          <th
+            colSpan={visibleColumns.length}
+            style={{
+              textAlign: "left",
+            }}
+          >
+            <GlobalFilter
+              preGlobalFilteredRows={preGlobalFilteredRows}
+              globalFilter={state.globalFilter}
+              setGlobalFilter={setGlobalFilter}
+            />
+          </th>
+        </tr>
+
+        {headerGroups.map((headerGroup) => (
+          <tr key={headerGroup.id} {...headerGroup.getHeaderGroupProps()}>
+            {headerGroup.headers.map((column) => {
+              const isSorted = column.id === 'createdtime';
+
+              const headerProps = column.getHeaderProps(isSorted && column.getSortByToggleProps());
+
+              return (
+                <th
+                  key={column.id}
+                  {...headerProps}
+                >
                   {column.render("Header")}
-                  {/* Render the columns filter UI */}
+
                   <div>{column.canFilter ? column.render("Filter") : null}</div>
+
+                  {isSorted && <span>
+                    {column.isSorted
+                      ? column.isSortedDesc
+                        ? " 🔽"
+                        : " 🔼"
+                      : ""}
+                  </span>}
                 </th>
+              );
+            })}
+          </tr>
+        ))}
+      </thead>
+      <tbody {...getTableBodyProps()}>
+        {firstPageRows.map((row) => {
+          prepareRow(row);
+
+          return (
+            <tr key={row.id} {...row.getRowProps()}>
+              {row.cells.map((cell, cellIndex) => (
+                <td key={`${row.id}cell:${cellIndex}`} {...cell.getCellProps()}>
+                  {cell.render("Cell")}
+                </td>
               ))}
             </tr>
-          ))}
-          <tr>
-            <th
-              colSpan={visibleColumns.length}
-              style={{
-                textAlign: "left",
-              }}
-            >
-              <GlobalFilter
-                preGlobalFilteredRows={preGlobalFilteredRows}
-                globalFilter={state.globalFilter}
-                setGlobalFilter={setGlobalFilter}
-              />
-            </th>
-          </tr>
-        </thead>
-        <tbody {...getTableBodyProps()}>
-          {firstPageRows.map((row, i) => {
-            prepareRow(row);
-            return (
-              <tr {...row.getRowProps()}>
-                {row.cells.map((cell) => {
-                  return (
-                    <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <br />
-      <div>Showing the first 20 results of {rows.length} rows</div>
-      <div>
-        <pre>
-          <code>{JSON.stringify(state.filters, null, 2)}</code>
-        </pre>
-      </div>
-    </>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }
 
-export const FilterTableWrapper = ({columns = [], data = []}) => {
+export const FilterTableWrapper = ({columns = [], data = [], initialState = []}) => {
   return (
     <Styles>
-      <Table columns={columns} data={data} />
-    </Styles>
-  );
-};
-
-export const FilterTable = () => {
-  const columns = useMemo(
-    () => [
-      {
-        Header: "Name",
-        columns: [
-          {
-            Header: "First Name",
-            accessor: "firstName",
-          },
-          {
-            Header: "Last Name",
-            accessor: "lastName",
-            // Use our custom `fuzzyText` filter on this column
-            filter: "fuzzyText",
-          },
-        ],
-      },
-      {
-        Header: "Info",
-        columns: [
-          {
-            Header: "Age",
-            accessor: "age",
-            Filter: SliderColumnFilter,
-            filter: "equals",
-          },
-          {
-            Header: "Visits",
-            accessor: "visits",
-            Filter: NumberRangeColumnFilter,
-            filter: "between",
-          },
-          {
-            Header: "Status",
-            accessor: "status",
-            Filter: SelectColumnFilter,
-            filter: "includes",
-          },
-          {
-            Header: "Profile Progress",
-            accessor: "progress",
-            Filter: SliderColumnFilter,
-            filter: filterGreaterThan,
-          },
-        ],
-      },
-    ],
-    []
-  );
-
-  const data = useMemo(() => makeData(100000), []);
-
-  return (
-    <Styles>
-      <Table columns={columns} data={data} />
+      <Table columns={columns} data={data} initialState={initialState} />
     </Styles>
   );
 };

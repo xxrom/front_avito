@@ -1,6 +1,7 @@
 import React, {useMemo, useState} from "react";
 import {matchSorter} from "match-sorter";
-import regeneratorRuntime from "regenerator-runtime";
+// eslint-disable-next-line no-unused-vars
+import _ignore from "regenerator-runtime";
 import {useAsyncDebounce} from "react-table";
 
 export const MAX_ITEMS = 100;
@@ -39,17 +40,18 @@ export function GlobalFilter({
 
 // Define a default UI for filtering
 export function DefaultColumnFilter({
-  column: {filterValue, preFilteredRows, setFilter},
+  column: {filterValue = '', preFilteredRows, setFilter},
 }) {
   const count = preFilteredRows.length;
 
   return (
     <input
-      value={filterValue || ""}
+      value={filterValue}
       onChange={(e) => {
-        setFilter(e.target.value || ""); // Set undefined to remove the filter entirely
+        e.target.value && setFilter(e.target.value); // Set undefined to remove the filter entirely
       }}
-      placeholder={`Search ${count} records...`}
+      style={{width: "70px"}}
+      placeholder={`...${count}`}
     />
   );
 }
@@ -142,42 +144,29 @@ export function NumberRangeColumnFilter({
   }, [id, preFilteredRows]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-      }}
-    >
+    <div>
       <input
         value={filterValue[0] || ""}
         type="number"
         onChange={(e) => {
           const val = e.target.value;
-          setFilter((old = []) => [
-            val ? parseInt(val, 10) : 0,
-            old[1],
-          ]);
+          setFilter((old = []) => [val ? parseInt(val, 10) : 0, old[1]]);
         }}
-        placeholder={`Min (${min})`}
+        placeholder={`${min} <`}
         style={{
           width: "70px",
-          marginRight: "0.5rem",
         }}
       />
-      to
       <input
         value={filterValue[1] || ""}
         type="number"
         onChange={(e) => {
           const val = e.target.value;
-          setFilter((old = []) => [
-            old[0],
-            val ? parseInt(val, 10) : 0,
-          ]);
+          setFilter((old = []) => [old[0], val ? parseInt(val, 10) : 0]);
         }}
-        placeholder={`Max (${max})`}
+        placeholder={`< ${max}`}
         style={{
           width: "70px",
-          marginLeft: "0.5rem",
         }}
       />
     </div>
