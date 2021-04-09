@@ -1,6 +1,6 @@
-import React, {useMemo} from "react";
-import {styled} from "linaria/react";
-import {useTable, useFilters, useGlobalFilter, useSortBy} from "react-table";
+import React, { useMemo } from "react";
+import { styled } from "linaria/react";
+import { useTable, useFilters, useGlobalFilter, useSortBy } from "react-table";
 import {
   GlobalFilter,
   fuzzyTextFilterFn,
@@ -41,7 +41,7 @@ const Styles = styled.div`
 //fuzzyTextFilterFn.autoRemove = val => !val
 
 // Our table component
-function Table({columns, data, initialState}) {
+function Table({ updateData, columns, data, initialState }) {
   const filterTypes = useMemo(
     () => ({
       // Add a new fuzzyTextFilterFn filter type.
@@ -54,8 +54,8 @@ function Table({columns, data, initialState}) {
 
           return rowValue !== "undefined"
             ? String(rowValue)
-              .toLowerCase()
-              .startsWith(String(filterValue).toLowerCase())
+                .toLowerCase()
+                .startsWith(String(filterValue).toLowerCase())
             : true;
         });
       },
@@ -108,6 +108,8 @@ function Table({columns, data, initialState}) {
               textAlign: "left",
             }}
           >
+            <button onClick={updateData}>Update data</button>
+            {"  --->  "}
             <GlobalFilter
               preGlobalFilteredRows={preGlobalFilteredRows}
               globalFilter={state.globalFilter}
@@ -119,26 +121,27 @@ function Table({columns, data, initialState}) {
         {headerGroups.map((headerGroup) => (
           <tr key={headerGroup.id} {...headerGroup.getHeaderGroupProps()}>
             {headerGroup.headers.map((column) => {
-              const isSorted = column.id === 'createdtime';
+              const isSorted = column.id === "createdtime";
 
-              const headerProps = column.getHeaderProps(isSorted && column.getSortByToggleProps());
+              const headerProps = column.getHeaderProps(
+                isSorted && column.getSortByToggleProps()
+              );
 
               return (
-                <th
-                  key={column.id}
-                  {...headerProps}
-                >
+                <th key={column.id} {...headerProps}>
                   {column.render("Header")}
 
                   <div>{column.canFilter ? column.render("Filter") : null}</div>
 
-                  {isSorted && <span>
-                    {column.isSorted
-                      ? column.isSortedDesc
-                        ? " 🔽"
-                        : " 🔼"
-                      : ""}
-                  </span>}
+                  {isSorted && (
+                    <span>
+                      {column.isSorted
+                        ? column.isSortedDesc
+                          ? " 🔽"
+                          : " 🔼"
+                        : ""}
+                    </span>
+                  )}
                 </th>
               );
             })}
@@ -164,10 +167,20 @@ function Table({columns, data, initialState}) {
   );
 }
 
-export const FilterTableWrapper = ({columns = [], data = [], initialState = []}) => {
+export const FilterTableWrapper = ({
+  updateData,
+  columns = [],
+  data = [],
+  initialState = [],
+}) => {
   return (
     <Styles>
-      <Table columns={columns} data={data} initialState={initialState} />
+      <Table
+        updateData={updateData}
+        columns={columns}
+        data={data}
+        initialState={initialState}
+      />
     </Styles>
   );
 };

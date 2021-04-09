@@ -1,7 +1,8 @@
-import React, {useMemo, useState, useEffect} from "react";
-import {hot} from "react-hot-loader/root";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { hot } from "react-hot-loader/root";
 
-import {FilterTableWrapper} from "./components/FilterTable";
+import { FilterTableWrapper } from "./components/FilterTable";
+import { Loading } from "./components/Loading";
 import {
   //SliderColumnFilter,
   //GlobalFilter,
@@ -11,9 +12,9 @@ import {
   //DefaultColumnFilter,
   NumberRangeColumnFilter,
 } from "./components/FilterTable/filters";
-import {uniqData} from "./uniqData";
+import { uniqData } from "./uniqData";
 
-const addTextBefore = ({data, key, addBefore}) => {
+const addTextBefore = ({ data, key, addBefore }) => {
   const newData = data.map((item) => ({
     ...item,
     [key]: `${addBefore}${item[key]}`,
@@ -32,17 +33,33 @@ const formLinks = (data) => {
   return expandedData;
 };
 
+const DB_URL = "http://192.168.1.61:3010/card";
+
+const Link = ({ value }) => <a href={value}>LINK</a>;
+Link.displayName = "Link";
+
+const Time = ({ value }) => (
+  <span>{`${new Date(Number(value))
+    .toJSON()
+    .slice(0, 16)
+    .replace("T", "  ")}`}</span>
+);
+Time.displayName = "Time";
+
 const App = () => {
   const [data, setData] = useState(uniqData); // []
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    fetch("http://192.168.1.61:3010/card")
+  const updateData = useCallback(() => {
+    setIsLoading(true);
+
+    fetch(DB_URL)
       .then((res) => res.json())
       .then((result) => {
         const seen = {};
         const rawData = result.data;
         const uniqData = rawData.reduce((accumulator, item) => {
-          const {card_id} = item;
+          const { card_id } = item;
 
           if (!seen[card_id]) {
             seen[card_id] = true;
@@ -56,7 +73,12 @@ const App = () => {
         console.warn(`unique size ${unique.length}`);
 
         setData(unique || []);
-      });
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    updateData();
   }, []);
 
   /*
@@ -95,13 +117,14 @@ const App = () => {
         Header: "Link",
         accessor: "link",
         //filter: "fuzzyText",
-        Cell: ({value}) => <a href={value}>LINK</a>,
+        Cell: Link,
       },
       {
         Header: "Time",
         accessor: "createdtime",
         sortType: "basic",
-        desc: true
+        Cell: Time,
+        desc: true,
       },
       {
         Header: "Geo",
@@ -117,26 +140,39 @@ const App = () => {
     ],
     []
   );
-  const initialState = useMemo(() => ({
-    sortBy: [
-      {
-        id: 'createdtime',
-        desc: true
-      }
-    ],
-    filters: [
-      {
-        id: 'price',
-        value: [15000, 35000]
-      },
-      {
-        id: 'title',
-        value: '1070'
-      }
-    ]
-  }), []);
+  const initialState = useMemo(
+    () => ({
+      sortBy: [
+        {
+          id: "createdtime",
+          desc: true,
+        },
+      ],
+      filters: [
+        {
+          id: "price",
+          value: [15000, 35000],
+        },
+        {
+          id: "title",
+          value: "1070",
+        },
+      ],
+    }),
+    []
+  );
 
-  return <FilterTableWrapper columns={columns} data={data} initialState={initialState} />;
+  return (
+    <>
+      {isLoading && <Loading />}
+      <FilterTableWrapper
+        updateData={updateData}
+        columns={columns}
+        data={data}
+        initialState={initialState}
+      />
+    </>
+  );
 };
 
 export default hot(App);
