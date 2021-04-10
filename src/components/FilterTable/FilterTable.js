@@ -7,6 +7,7 @@ import {
   DefaultColumnFilter,
   MAX_ITEMS,
 } from "./filters";
+import { Cube } from "../Loading/Cube";
 
 const Styles = styled.div`
   padding: 1rem;
@@ -108,8 +109,12 @@ function Table({ updateData, columns, data, initialState }) {
               textAlign: "left",
             }}
           >
-            <button onClick={updateData}>Update data</button>
-            {"  --->  "}
+            <button onClick={updateData}>
+              <Cube size="5px" />
+              Update data
+              <Cube size="5px" />{" "}
+            </button>
+            {"  ---->  "}
             <GlobalFilter
               preGlobalFilteredRows={preGlobalFilteredRows}
               globalFilter={state.globalFilter}

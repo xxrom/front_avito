@@ -48,7 +48,7 @@ Time.displayName = "Time";
 
 const App = () => {
   const [data, setData] = useState(uniqData); // []
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const updateData = useCallback(() => {
     setIsLoading(true);
@@ -164,7 +164,7 @@ const App = () => {
 
   return (
     <>
-      {isLoading && <Loading />}
+      {isLoading && <Loading type="cube" />}
       <FilterTableWrapper
         updateData={updateData}
         columns={columns}

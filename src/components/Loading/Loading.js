@@ -1,11 +1,14 @@
 import React from "react";
 import { styled } from "linaria/react";
+import { Cube } from "./Cube";
 
-export const Loading = () => (
+export const Loading = ({ type = "default", size = "10vmin" }) => (
   <Body>
-    <LoadingSpinner />
+    {type === "cube" && <Cube size={size} />}
+    {type === "default" && <LoadingSpinner />}
   </Body>
 );
+//<LoadingSpinner />
 
 const Body = styled.div`
   position: fixed;
